@@ -1,22 +1,37 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+
+async function uploadFile(file) {
+  const data = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: file.name, type: file.type, data }),
+  });
+  if (!res.ok) throw new Error('Upload failed');
+  const { url } = await res.json();
+  return url;
+}
 
 export default function PhotoUpload({ photos, onChange }) {
   const inputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
 
-  function handleFiles(e) {
+  async function handleFiles(e) {
     const files = Array.from(e.target.files);
-    Promise.all(
-      files.map(
-        file =>
-          new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          })
-      )
-    ).then(base64s => onChange([...photos, ...base64s]));
     e.target.value = '';
+    setUploading(true);
+    try {
+      const urls = await Promise.all(files.map(uploadFile));
+      onChange([...photos, ...urls]);
+    } finally {
+      setUploading(false);
+    }
   }
 
   function remove(index) {
@@ -33,7 +48,7 @@ export default function PhotoUpload({ photos, onChange }) {
     <div>
       <div className="flex flex-wrap gap-2 mb-2">
         {photos.map((src, i) => (
-          <div key={i} className="relative w-20 h-20 group">
+          <div key={src} className="relative w-20 h-20 group">
             <img
               src={src}
               alt={`photo ${i + 1}`}
@@ -41,13 +56,11 @@ export default function PhotoUpload({ photos, onChange }) {
                 i === 0 ? 'border-yellow-400' : 'border-gray-200'
               }`}
             />
-            {/* Featured badge */}
             {i === 0 && photos.length > 1 && (
               <span className="absolute bottom-0 left-0 right-0 bg-yellow-400 text-yellow-900 text-[10px] font-semibold text-center leading-4 rounded-b">
                 Featured
               </span>
             )}
-            {/* Set as featured button — visible on hover for non-featured photos */}
             {i !== 0 && (
               <button
                 type="button"
@@ -58,7 +71,6 @@ export default function PhotoUpload({ photos, onChange }) {
                 ★ Feature
               </button>
             )}
-            {/* Remove button */}
             <button
               type="button"
               onClick={() => remove(i)}
@@ -71,10 +83,17 @@ export default function PhotoUpload({ photos, onChange }) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="w-20 h-20 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-400 transition-colors"
+          disabled={uploading}
+          className="w-20 h-20 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-400 transition-colors disabled:opacity-50"
         >
-          <span className="text-2xl leading-none">+</span>
-          <span className="text-xs mt-1">Add photo</span>
+          {uploading ? (
+            <span className="text-xs">Uploading…</span>
+          ) : (
+            <>
+              <span className="text-2xl leading-none">+</span>
+              <span className="text-xs mt-1">Add photo</span>
+            </>
+          )}
         </button>
       </div>
       <input

@@ -5,7 +5,7 @@ import ItemFormModal from './components/ItemFormModal';
 import ItemDetailModal from './components/ItemDetailModal';
 
 export default function App() {
-  const { items, addItem, updateItem, deleteItem } = useInventory();
+  const { items, loading, error, addItem, updateItem, deleteItem } = useInventory();
   const [modalItem, setModalItem] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [detailItem, setDetailItem] = useState(null);
@@ -37,17 +37,20 @@ export default function App() {
     setModalOpen(true);
   }
 
-  function handleSave(data) {
+  async function handleSave(data) {
     if (modalItem) {
-      updateItem(modalItem.id, data);
+      await updateItem(modalItem.id, data);
     } else {
-      addItem(data);
+      await addItem(data);
     }
     setModalOpen(false);
   }
 
-  function handleDelete(id) {
-    if (confirm('Delete this item?')) deleteItem(id);
+  async function handleDelete(id) {
+    if (confirm('Delete this item?')) {
+      await deleteItem(id);
+      setDetailItem(null);
+    }
   }
 
   function toggleCategory(cat) {
@@ -107,19 +110,32 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <p className="text-sm text-gray-400 mb-6">
-          {filtered.length} {filtered.length === 1 ? 'item' : 'items'}
-          {activeCategory && ` in ${activeCategory}`}
-          {query.trim() && ` matching "${query}"`}
-        </p>
-        <ItemList items={filtered} onEdit={openEdit} onDelete={handleDelete} onView={setDetailItem} isFiltered={isFiltered} />
+        {error ? (
+          <div className="text-center py-24 text-red-400">
+            <p className="text-lg font-medium">Failed to load items</p>
+            <p className="text-sm mt-1">{error}</p>
+          </div>
+        ) : loading ? (
+          <div className="flex justify-center py-24">
+            <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-gray-400 mb-6">
+              {filtered.length} {filtered.length === 1 ? 'item' : 'items'}
+              {activeCategory && ` in ${activeCategory}`}
+              {query.trim() && ` matching "${query}"`}
+            </p>
+            <ItemList items={filtered} onEdit={openEdit} onDelete={handleDelete} onView={setDetailItem} isFiltered={isFiltered} />
+          </>
+        )}
       </main>
 
       {detailItem && (
         <ItemDetailModal
           item={detailItem}
           onEdit={openEdit}
-          onDelete={id => { handleDelete(id); setDetailItem(null); }}
+          onDelete={handleDelete}
           onClose={() => setDetailItem(null)}
         />
       )}

@@ -28,6 +28,7 @@ const empty = () => ({
 export default function ItemFormModal({ item, onSave, onClose }) {
   const [form, setForm] = useState(empty);
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setForm(item ? { ...item, price: String(item.price) } : empty());
@@ -48,11 +49,16 @@ export default function ItemFormModal({ item, onSave, onClose }) {
     return e;
   }
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     const e2 = validate();
     if (Object.keys(e2).length) { setErrors(e2); return; }
-    onSave({ ...form, price: parseFloat(form.price) || 0 });
+    setSaving(true);
+    try {
+      await onSave({ ...form, price: parseFloat(form.price) || 0 });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -141,9 +147,10 @@ export default function ItemFormModal({ item, onSave, onClose }) {
             </button>
             <button
               type="submit"
-              className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+              disabled={saving}
+              className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors disabled:opacity-60"
             >
-              {item ? 'Save Changes' : 'Add Item'}
+              {saving ? 'Saving…' : item ? 'Save Changes' : 'Add Item'}
             </button>
           </div>
         </form>

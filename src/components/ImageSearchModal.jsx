@@ -10,6 +10,7 @@ export default function ImageSearchModal({ getToken, onSelect, onCancel }) {
 
   async function handleSearch(e) {
     e.preventDefault()
+    e.stopPropagation()
     if (!query.trim()) return
     setSearching(true)
     setError('')

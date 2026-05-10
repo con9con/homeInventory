@@ -49,7 +49,7 @@ export default function CropModal({ src, filename, onConfirm, onCancel }) {
           image={src}
           crop={crop}
           zoom={zoom}
-          aspect={1}
+
           onCropChange={setCrop}
           onZoomChange={setZoom}
           onCropComplete={onCropComplete}

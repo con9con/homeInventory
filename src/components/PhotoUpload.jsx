@@ -23,16 +23,42 @@ export default function PhotoUpload({ photos, onChange }) {
     onChange(photos.filter((_, i) => i !== index));
   }
 
+  function setFeatured(index) {
+    const next = [...photos];
+    const [picked] = next.splice(index, 1);
+    onChange([picked, ...next]);
+  }
+
   return (
     <div>
       <div className="flex flex-wrap gap-2 mb-2">
         {photos.map((src, i) => (
-          <div key={i} className="relative w-20 h-20">
+          <div key={i} className="relative w-20 h-20 group">
             <img
               src={src}
               alt={`photo ${i + 1}`}
-              className="w-20 h-20 object-cover rounded border border-gray-200"
+              className={`w-20 h-20 object-cover rounded border-2 ${
+                i === 0 ? 'border-yellow-400' : 'border-gray-200'
+              }`}
             />
+            {/* Featured badge */}
+            {i === 0 && photos.length > 1 && (
+              <span className="absolute bottom-0 left-0 right-0 bg-yellow-400 text-yellow-900 text-[10px] font-semibold text-center leading-4 rounded-b">
+                Featured
+              </span>
+            )}
+            {/* Set as featured button — visible on hover for non-featured photos */}
+            {i !== 0 && (
+              <button
+                type="button"
+                onClick={() => setFeatured(i)}
+                title="Set as featured"
+                className="absolute bottom-0 left-0 right-0 bg-black/60 text-yellow-300 text-[10px] font-semibold text-center leading-4 rounded-b opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                ★ Feature
+              </button>
+            )}
+            {/* Remove button */}
             <button
               type="button"
               onClick={() => remove(i)}

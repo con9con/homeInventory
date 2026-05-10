@@ -27,7 +27,14 @@ export default function ItemCard({ item, onEdit, onDelete }) {
         <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">{item.brand}</p>
         <p className="font-semibold text-gray-800 leading-snug">{item.model}</p>
         <p className="text-blue-600 font-medium text-sm">{fmt.format(item.price)}</p>
-        <p className="text-gray-400 text-xs mt-auto pt-2">{dateFmt(item.dateAdded)}</p>
+        <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+          <p className="text-gray-400 text-xs">{dateFmt(item.dateAdded)}</p>
+          {item.category && (
+            <span className="text-xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 truncate">
+              {item.category}
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex border-t border-gray-100">
         <button

@@ -11,7 +11,7 @@ export default function App() {
 
   const filtered = query.trim()
     ? items.filter(i =>
-        `${i.brand} ${i.model}`.toLowerCase().includes(query.toLowerCase())
+        `${i.brand} ${i.model} ${i.category ?? ''}`.toLowerCase().includes(query.toLowerCase())
       )
     : items;
 

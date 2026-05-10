@@ -3,9 +3,23 @@ import PhotoUpload from './PhotoUpload';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+export const CATEGORIES = [
+  'Electronics',
+  'Furniture',
+  'Appliances',
+  'Kitchen',
+  'Clothing',
+  'Tools',
+  'Sports & Outdoors',
+  'Office',
+  'Garage',
+  'Other',
+];
+
 const empty = () => ({
   brand: '',
   model: '',
+  category: '',
   price: '',
   dateAdded: today(),
   photos: [],
@@ -76,6 +90,18 @@ export default function ItemFormModal({ item, onSave, onClose }) {
               placeholder="e.g. WH-1000XM5"
               className={input(errors.model)}
             />
+          </Field>
+          <Field label="Category">
+            <select
+              value={form.category}
+              onChange={e => set('category', e.target.value)}
+              className={input()}
+            >
+              <option value="">— Select a category —</option>
+              {CATEGORIES.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </Field>
           <Field label="Price" error={errors.price}>
             <div className="relative">

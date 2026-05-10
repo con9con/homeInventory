@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import CropModal from './CropModal';
 import CroppedPhoto, { normalizePhoto } from './CroppedPhoto';
+import ImageSearchModal from './ImageSearchModal';
 
 async function readAsDataURL(file) {
   return new Promise((resolve, reject) => {
@@ -35,6 +36,7 @@ async function uploadOriginal(file, getToken) {
 export default function PhotoUpload({ photos, onChange, getToken }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   // Each queue item: { src, initialCrop, existingIndex, uploadPromise }
   const [cropQueue, setCropQueue] = useState([]);
 
@@ -89,6 +91,17 @@ export default function PhotoUpload({ photos, onChange, getToken }) {
     onChange([picked, ...next]);
   }
 
+  function handleSearchSelect(blobUrl) {
+    setShowSearch(false);
+    // Image is already uploaded to Blob; queue it for cropping with a resolved promise
+    setCropQueue(q => [...q, {
+      src: blobUrl,
+      initialCrop: null,
+      existingIndex: null,
+      uploadPromise: Promise.resolve(blobUrl),
+    }]);
+  }
+
   function startRecrop(index) {
     const { url, crop } = normalizePhoto(photos[index]);
     setCropQueue(q => [...q, { src: url, initialCrop: crop, existingIndex: index, uploadPromise: null }]);
@@ -96,6 +109,13 @@ export default function PhotoUpload({ photos, onChange, getToken }) {
 
   return (
     <>
+      {showSearch && (
+        <ImageSearchModal
+          getToken={getToken}
+          onSelect={handleSearchSelect}
+          onCancel={() => setShowSearch(false)}
+        />
+      )}
       {cropQueue.length > 0 && (
         <CropModal
           src={cropQueue[0].src}
@@ -165,6 +185,15 @@ export default function PhotoUpload({ photos, onChange, getToken }) {
                 <span className="text-xs mt-1">Add photo</span>
               </>
             )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowSearch(true)}
+            disabled={uploading}
+            className="w-20 h-20 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-400 transition-colors disabled:opacity-50"
+          >
+            <span className="text-lg leading-none">Web</span>
+            <span className="text-xs mt-1">Search</span>
           </button>
         </div>
         <input

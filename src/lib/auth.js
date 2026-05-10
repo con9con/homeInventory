@@ -1,14 +1,10 @@
-import { createRemoteJWKSet, jwtVerify } from 'jose'
+import { createClerkClient } from '@clerk/backend'
 
-let JWKS
+let clerk
 
-function getJWKS() {
-  if (!JWKS) {
-    JWKS = createRemoteJWKSet(
-      new URL(`${process.env.NEON_AUTH_BASE_URL}/.well-known/jwks.json`)
-    )
-  }
-  return JWKS
+function getClerk() {
+  if (!clerk) clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
+  return clerk
 }
 
 export async function getUserId(req) {
@@ -16,7 +12,7 @@ export async function getUserId(req) {
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : null
   if (!token) return null
   try {
-    const { payload } = await jwtVerify(token, getJWKS())
+    const payload = await getClerk().verifyToken(token)
     return payload.sub ?? null
   } catch {
     return null

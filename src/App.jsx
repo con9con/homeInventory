@@ -1,43 +1,39 @@
 import { useState, useMemo } from 'react';
-import { useUser, useStackApp, UserButton } from '@stackframe/stack';
+import { useAuth, useUser, UserButton, SignIn } from '@clerk/clerk-react';
 import { useInventory } from './hooks/useInventory';
 import ItemList from './components/ItemList';
 import ItemFormModal from './components/ItemFormModal';
 import ItemDetailModal from './components/ItemDetailModal';
 
 export default function App() {
-  const user = useUser();
-  const stackApp = useStackApp();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
 
-  if (!user) {
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-sm text-center">
-          <span className="text-5xl">🏠</span>
-          <h1 className="text-2xl font-bold text-gray-800 mt-4 mb-2">Home Inventory</h1>
-          <p className="text-gray-400 text-sm mb-6">Sign in to manage your inventory.</p>
-          <button
-            onClick={() => stackApp.redirectToSignIn()}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-          >
-            Sign in
-          </button>
-          <button
-            onClick={() => stackApp.redirectToSignUp()}
-            className="w-full mt-3 border border-gray-200 text-gray-600 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-          >
-            Create account
-          </button>
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-6">
+            <span className="text-5xl">🏠</span>
+            <h1 className="text-2xl font-bold text-gray-800 mt-4">Home Inventory</h1>
+          </div>
+          <SignIn routing="hash" />
         </div>
       </div>
     );
   }
 
-  return <Inventory user={user} />;
+  return <Inventory getToken={getToken} />;
 }
 
-function Inventory({ user }) {
-  const getToken = () => user.getAuthJson().then(j => j?.accessToken ?? null);
+function Inventory({ getToken }) {
   const { items, loading, error, addItem, updateItem, deleteItem } = useInventory(getToken);
 
   const [modalItem, setModalItem] = useState(null);

@@ -35,7 +35,7 @@ export default function CroppedPhoto({ photo, className, style }) {
         style={{
           position: 'absolute',
           width:  `${scaleW * 100}%`,
-          height: `${scaleH * 100}%`,
+          height: 'auto',
           left:   `${left}%`,
           top:    `${top}%`,
         }}

@@ -31,7 +31,7 @@ export default function CropModal({ src, filename, onConfirm, onCancel }) {
   const onImageLoad = useCallback(e => {
     const { width, height } = e.currentTarget;
     const initial = centerCrop(
-      makeAspectCrop({ unit: '%', width: 90 }, undefined, width, height),
+      makeAspectCrop({ unit: '%', width: 90 }, 1, width, height),
       width,
       height,
     );
@@ -58,6 +58,7 @@ export default function CropModal({ src, filename, onConfirm, onCancel }) {
           crop={crop}
           onChange={setCrop}
           onComplete={setCompletedCrop}
+          aspect={1}
           ruleOfThirds
         >
           <img

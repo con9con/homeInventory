@@ -18,23 +18,25 @@ export default function CroppedPhoto({ photo, className, style }) {
     );
   }
 
-  // Use background-image so percentage positioning works correctly for any image aspect ratio.
-  // background-size X% auto scales the image so the crop width = container width.
-  // background-position percentages correctly map the crop region to the container edges.
-  const bgSizeW = (100 / crop.width) * 100;
-  const bgPosX = crop.width >= 100 ? 0 : (crop.x / (100 - crop.width)) * 100;
-  const bgPosY = crop.height >= 100 ? 0 : (crop.y / (100 - crop.height)) * 100;
-
+  // Use an <img> (better rendering quality than background-image) with CSS transform.
+  // transform: translate(X%, Y%) is relative to the element's own size, so the
+  // offset correctly accounts for the image's natural aspect ratio at any zoom level.
   return (
     <div
       className={className}
-      style={{
-        backgroundImage: `url(${url})`,
-        backgroundSize: `${bgSizeW}% auto`,
-        backgroundPosition: `${bgPosX}% ${bgPosY}%`,
-        backgroundRepeat: 'no-repeat',
-        ...style,
-      }}
-    />
+      style={{ position: 'relative', overflow: 'hidden', ...style }}
+    >
+      <img
+        src={url}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: `${(100 / crop.width) * 100}%`,
+          height: 'auto',
+          transform: `translate(-${crop.x}%, -${crop.y}%)`,
+        }}
+      />
+    </div>
   );
 }

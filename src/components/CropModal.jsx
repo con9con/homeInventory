@@ -1,90 +1,90 @@
-import { useState, useCallback } from 'react';
-import Cropper from 'react-easy-crop';
+import { useState, useRef, useCallback } from 'react';
+import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
-async function getCroppedImg(imageSrc, croppedAreaPixels) {
-  const image = await new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = imageSrc;
-  });
-
+async function getCroppedBlob(imgEl, crop) {
   const canvas = document.createElement('canvas');
-  canvas.width = croppedAreaPixels.width;
-  canvas.height = croppedAreaPixels.height;
+  const scaleX = imgEl.naturalWidth / imgEl.width;
+  const scaleY = imgEl.naturalHeight / imgEl.height;
+  canvas.width = Math.round(crop.width * scaleX);
+  canvas.height = Math.round(crop.height * scaleY);
   const ctx = canvas.getContext('2d');
   ctx.drawImage(
-    image,
-    croppedAreaPixels.x,
-    croppedAreaPixels.y,
-    croppedAreaPixels.width,
-    croppedAreaPixels.height,
+    imgEl,
+    crop.x * scaleX,
+    crop.y * scaleY,
+    crop.width * scaleX,
+    crop.height * scaleY,
     0,
     0,
-    croppedAreaPixels.width,
-    croppedAreaPixels.height,
+    canvas.width,
+    canvas.height,
   );
-
   return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
 }
 
 export default function CropModal({ src, filename, onConfirm, onCancel }) {
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const imgRef = useRef(null);
+  const [crop, setCrop] = useState();
+  const [completedCrop, setCompletedCrop] = useState();
 
-  const onCropComplete = useCallback((_, pixels) => {
-    setCroppedAreaPixels(pixels);
+  const onImageLoad = useCallback(e => {
+    const { width, height } = e.currentTarget;
+    const initial = centerCrop(
+      makeAspectCrop({ unit: '%', width: 90 }, undefined, width, height),
+      width,
+      height,
+    );
+    setCrop(initial);
+    setCompletedCrop(initial);
   }, []);
 
   async function handleConfirm() {
-    const blob = await getCroppedImg(src, croppedAreaPixels);
+    if (!completedCrop || !imgRef.current) return;
+    const px = {
+      x: (completedCrop.x / 100) * imgRef.current.width,
+      y: (completedCrop.y / 100) * imgRef.current.height,
+      width: (completedCrop.width / 100) * imgRef.current.width,
+      height: (completedCrop.height / 100) * imgRef.current.height,
+    };
+    const blob = await getCroppedBlob(imgRef.current, px);
     onConfirm(blob, filename);
   }
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-black">
-      <div className="relative flex-1">
-        <Cropper
-          image={src}
+      <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+        <ReactCrop
           crop={crop}
-          zoom={zoom}
-
-          onCropChange={setCrop}
-          onZoomChange={setZoom}
-          onCropComplete={onCropComplete}
-        />
+          onChange={setCrop}
+          onComplete={setCompletedCrop}
+          ruleOfThirds
+        >
+          <img
+            ref={imgRef}
+            src={src}
+            alt="Crop preview"
+            style={{ maxHeight: '70vh', maxWidth: '100%' }}
+            onLoad={onImageLoad}
+          />
+        </ReactCrop>
       </div>
 
-      <div className="bg-gray-900 px-6 py-4 flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <span className="text-gray-400 text-sm w-10 shrink-0">Zoom</span>
-          <input
-            type="range"
-            min={1}
-            max={3}
-            step={0.01}
-            value={zoom}
-            onChange={e => setZoom(Number(e.target.value))}
-            className="flex-1 accent-blue-500"
-          />
-        </div>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 py-2.5 rounded-lg bg-gray-700 text-white text-sm font-medium hover:bg-gray-600 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleConfirm}
-            className="flex-1 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors"
-          >
-            Use Photo
-          </button>
-        </div>
+      <div className="bg-gray-900 px-6 py-4 flex gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 py-2.5 rounded-lg bg-gray-700 text-white text-sm font-medium hover:bg-gray-600 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={handleConfirm}
+          className="flex-1 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors"
+        >
+          Use Photo
+        </button>
       </div>
     </div>
   );

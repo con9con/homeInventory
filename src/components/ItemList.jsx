@@ -1,6 +1,6 @@
 import ItemCard from './ItemCard';
 
-export default function ItemList({ items, onEdit, onDelete, isFiltered }) {
+export default function ItemList({ items, onEdit, onDelete, onView, isFiltered }) {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-gray-400">
@@ -18,7 +18,7 @@ export default function ItemList({ items, onEdit, onDelete, isFiltered }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
       {items.map(item => (
-        <ItemCard key={item.id} item={item} onEdit={onEdit} onDelete={onDelete} />
+        <ItemCard key={item.id} item={item} onEdit={onEdit} onDelete={onDelete} onView={() => onView(item)} />
       ))}
     </div>
   );

@@ -2,11 +2,13 @@ import { useState, useMemo } from 'react';
 import { useInventory } from './hooks/useInventory';
 import ItemList from './components/ItemList';
 import ItemFormModal from './components/ItemFormModal';
+import ItemDetailModal from './components/ItemDetailModal';
 
 export default function App() {
   const { items, addItem, updateItem, deleteItem } = useInventory();
   const [modalItem, setModalItem] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailItem, setDetailItem] = useState(null);
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('');
 
@@ -110,8 +112,17 @@ export default function App() {
           {activeCategory && ` in ${activeCategory}`}
           {query.trim() && ` matching "${query}"`}
         </p>
-        <ItemList items={filtered} onEdit={openEdit} onDelete={handleDelete} isFiltered={isFiltered} />
+        <ItemList items={filtered} onEdit={openEdit} onDelete={handleDelete} onView={setDetailItem} isFiltered={isFiltered} />
       </main>
+
+      {detailItem && (
+        <ItemDetailModal
+          item={detailItem}
+          onEdit={openEdit}
+          onDelete={id => { handleDelete(id); setDetailItem(null); }}
+          onClose={() => setDetailItem(null)}
+        />
+      )}
 
       {modalOpen && (
         <ItemFormModal

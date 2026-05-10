@@ -125,12 +125,6 @@ export default function ItemDetailModal({ item, onEdit, onDelete, onClose }) {
               <span className="text-xs uppercase tracking-wide text-gray-400 block mb-0.5">Date Added</span>
               <span>{dateFmt(item.dateAdded)}</span>
             </div>
-            {hasPhotos && (
-              <div>
-                <span className="text-xs uppercase tracking-wide text-gray-400 block mb-0.5">Photos</span>
-                <span>{photos.length}</span>
-              </div>
-            )}
           </div>
         </div>
 

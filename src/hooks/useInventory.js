@@ -1,13 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export function useInventory() {
+export function useInventory(getToken) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  async function authHeaders() {
+    const token = await getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
   const load = useCallback(async () => {
     try {
-      const res = await fetch('/api/items');
+      const res = await fetch('/api/items', { headers: await authHeaders() });
       if (!res.ok) throw new Error('Failed to load items');
       setItems(await res.json());
     } catch (e) {
@@ -22,7 +27,7 @@ export function useInventory() {
   async function addItem(data) {
     const res = await fetch('/api/items', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...await authHeaders() },
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('Failed to save item');
@@ -34,7 +39,7 @@ export function useInventory() {
   async function updateItem(id, data) {
     const res = await fetch(`/api/items/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...await authHeaders() },
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('Failed to update item');
@@ -44,7 +49,10 @@ export function useInventory() {
   }
 
   async function deleteItem(id) {
-    const res = await fetch(`/api/items/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/items/${id}`, {
+      method: 'DELETE',
+      headers: await authHeaders(),
+    });
     if (!res.ok) throw new Error('Failed to delete item');
     setItems(prev => prev.filter(i => i.id !== id));
   }

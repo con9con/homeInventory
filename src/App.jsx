@@ -1,11 +1,45 @@
 import { useState, useMemo } from 'react';
+import { useUser, useStackApp, UserButton } from '@stackframe/stack';
 import { useInventory } from './hooks/useInventory';
 import ItemList from './components/ItemList';
 import ItemFormModal from './components/ItemFormModal';
 import ItemDetailModal from './components/ItemDetailModal';
 
 export default function App() {
-  const { items, loading, error, addItem, updateItem, deleteItem } = useInventory();
+  const user = useUser();
+  const stackApp = useStackApp();
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-sm text-center">
+          <span className="text-5xl">🏠</span>
+          <h1 className="text-2xl font-bold text-gray-800 mt-4 mb-2">Home Inventory</h1>
+          <p className="text-gray-400 text-sm mb-6">Sign in to manage your inventory.</p>
+          <button
+            onClick={() => stackApp.redirectToSignIn()}
+            className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          >
+            Sign in
+          </button>
+          <button
+            onClick={() => stackApp.redirectToSignUp()}
+            className="w-full mt-3 border border-gray-200 text-gray-600 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+          >
+            Create account
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <Inventory user={user} />;
+}
+
+function Inventory({ user }) {
+  const getToken = () => user.getAuthJson().then(j => j?.accessToken ?? null);
+  const { items, loading, error, addItem, updateItem, deleteItem } = useInventory(getToken);
+
   const [modalItem, setModalItem] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [detailItem, setDetailItem] = useState(null);
@@ -27,22 +61,12 @@ export default function App() {
     });
   }, [items, query, activeCategory]);
 
-  function openAdd() {
-    setModalItem(null);
-    setModalOpen(true);
-  }
-
-  function openEdit(item) {
-    setModalItem(item);
-    setModalOpen(true);
-  }
+  function openAdd() { setModalItem(null); setModalOpen(true); }
+  function openEdit(item) { setModalItem(item); setModalOpen(true); }
 
   async function handleSave(data) {
-    if (modalItem) {
-      await updateItem(modalItem.id, data);
-    } else {
-      await addItem(data);
-    }
+    if (modalItem) await updateItem(modalItem.id, data);
+    else await addItem(data);
     setModalOpen(false);
   }
 
@@ -63,20 +87,21 @@ export default function App() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-3 flex flex-col gap-3">
-          {/* Row 1: title + button — always visible */}
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-2xl shrink-0">🏠</span>
               <span className="text-lg font-bold text-gray-800 truncate">Home Inventory</span>
             </div>
-            <button
-              onClick={openAdd}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shrink-0"
-            >
-              + Add Item
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={openAdd}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+              >
+                + Add Item
+              </button>
+              <UserButton />
+            </div>
           </div>
-          {/* Row 2: search — full width on all screen sizes */}
           <input
             type="search"
             value={query}
@@ -149,6 +174,7 @@ export default function App() {
           item={modalItem}
           onSave={handleSave}
           onClose={() => setModalOpen(false)}
+          getToken={getToken}
         />
       )}
     </div>

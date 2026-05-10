@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-async function uploadFile(file) {
+async function uploadFile(file, getToken) {
   const data = await new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result.split(',')[1]);
@@ -8,9 +8,13 @@ async function uploadFile(file) {
     reader.readAsDataURL(file);
   });
 
+  const token = await getToken();
   const res = await fetch('/api/upload', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ name: file.name, type: file.type, data }),
   });
   if (!res.ok) throw new Error('Upload failed');
@@ -18,7 +22,7 @@ async function uploadFile(file) {
   return url;
 }
 
-export default function PhotoUpload({ photos, onChange }) {
+export default function PhotoUpload({ photos, onChange, getToken }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
 
@@ -27,7 +31,7 @@ export default function PhotoUpload({ photos, onChange }) {
     e.target.value = '';
     setUploading(true);
     try {
-      const urls = await Promise.all(files.map(uploadFile));
+      const urls = await Promise.all(files.map(f => uploadFile(f, getToken)));
       onChange([...photos, ...urls]);
     } finally {
       setUploading(false);

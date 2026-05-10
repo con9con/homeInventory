@@ -25,7 +25,7 @@ const empty = () => ({
   photos: [],
 });
 
-export default function ItemFormModal({ item, onSave, onClose }) {
+export default function ItemFormModal({ item, onSave, onClose, getToken }) {
   const [form, setForm] = useState(empty);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -135,6 +135,7 @@ export default function ItemFormModal({ item, onSave, onClose }) {
             <PhotoUpload
               photos={form.photos}
               onChange={photos => set('photos', photos)}
+              getToken={getToken}
             />
           </Field>
           <div className="flex gap-3 pt-2">

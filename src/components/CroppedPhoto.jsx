@@ -4,7 +4,7 @@ export function normalizePhoto(p) {
 }
 
 // Renders a photo with its crop region filling the container.
-// crop: { x, y, width, height } as percentages of the displayed image dimensions.
+// crop: { x, y, width, height } as percentages of the image's natural dimensions.
 export default function CroppedPhoto({ photo, className, style }) {
   const { url, crop } = normalizePhoto(photo);
 
@@ -18,28 +18,23 @@ export default function CroppedPhoto({ photo, className, style }) {
     );
   }
 
-  // Scale the image so the crop region exactly fills the container, then offset it.
-  // All percentages are relative to the container dimensions.
-  const scaleW = 100 / crop.width;   // e.g. crop.width=80% → scaleW=1.25
-  const scaleH = 100 / crop.height;
-  const left = -(crop.x / crop.width) * 100;   // e.g. crop.x=10%, crop.width=80% → left=-12.5%
-  const top  = -(crop.y / crop.height) * 100;
+  // Use background-image so percentage positioning works correctly for any image aspect ratio.
+  // background-size X% auto scales the image so the crop width = container width.
+  // background-position percentages correctly map the crop region to the container edges.
+  const bgSizeW = (100 / crop.width) * 100;
+  const bgPosX = crop.width >= 100 ? 0 : (crop.x / (100 - crop.width)) * 100;
+  const bgPosY = crop.height >= 100 ? 0 : (crop.y / (100 - crop.height)) * 100;
 
   return (
     <div
       className={className}
-      style={{ position: 'relative', overflow: 'hidden', ...style }}
-    >
-      <img
-        src={url}
-        style={{
-          position: 'absolute',
-          width:  `${scaleW * 100}%`,
-          height: 'auto',
-          left:   `${left}%`,
-          top:    `${top}%`,
-        }}
-      />
-    </div>
+      style={{
+        backgroundImage: `url(${url})`,
+        backgroundSize: `${bgSizeW}% auto`,
+        backgroundPosition: `${bgPosX}% ${bgPosY}%`,
+        backgroundRepeat: 'no-repeat',
+        ...style,
+      }}
+    />
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth, useUser, UserButton, SignIn } from '@clerk/clerk-react';
 import { useInventory } from './hooks/useInventory';
 import ItemList from './components/ItemList';
@@ -7,8 +7,31 @@ import ItemDetailModal from './components/ItemDetailModal';
 
 export default function App() {
   const { isLoaded, isSignedIn, getToken } = useAuth();
+  const [timedOut, setTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded) return;
+    const t = setTimeout(() => setTimedOut(true), 10000);
+    return () => clearTimeout(t);
+  }, [isLoaded]);
 
   if (!isLoaded) {
+    if (timedOut) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+          <div className="text-center max-w-sm">
+            <p className="text-gray-700 font-medium mb-2">Taking too long to load</p>
+            <p className="text-gray-500 text-sm mb-4">Authentication failed to initialize. Try a hard refresh (⌘⇧R / Ctrl+Shift+R), or check your network connection.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+            >
+              Reload
+            </button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />

@@ -63,42 +63,45 @@ function Inventory({ getToken, email, onSignOut }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-3 flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-2xl shrink-0">🏠</span>
-              <span className="text-lg font-bold text-gray-800 truncate">Home Inventory</span>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={openAdd}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-              >
-                + Add Item
-              </button>
-              <div className="relative group">
-                <button className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 text-sm font-medium flex items-center justify-center hover:bg-gray-200 transition-colors">
-                  {email?.[0]?.toUpperCase() ?? '?'}
-                </button>
-                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg py-1 w-48 hidden group-focus-within:block">
-                  <p className="px-3 py-2 text-xs text-gray-400 truncate">{email}</p>
-                  <button
-                    onClick={onSignOut}
-                    className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-3 flex flex-wrap sm:flex-nowrap items-center gap-3">
+          {/* Title — always first */}
+          <div className="flex items-center gap-2 min-w-0 shrink-0 order-1">
+            <span className="text-2xl shrink-0">🏠</span>
+            <span className="text-lg font-bold text-gray-800 truncate">Home Inventory</span>
           </div>
+
+          {/* Search — below title on mobile (order-3 + w-full forces new row), between title and actions on sm+ */}
           <input
             type="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search by brand or model…"
-            className="w-full sm:max-w-sm border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+            className="order-3 sm:order-2 w-full sm:flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
           />
+
+          {/* Actions — right of title on mobile (ml-auto), end of row on sm+ */}
+          <div className="order-2 sm:order-3 flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
+            <button
+              onClick={openAdd}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              + Add Item
+            </button>
+            <div className="relative group">
+              <button className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 text-sm font-medium flex items-center justify-center hover:bg-gray-200 transition-colors">
+                {email?.[0]?.toUpperCase() ?? '?'}
+              </button>
+              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg py-1 w-48 hidden group-focus-within:block">
+                <p className="px-3 py-2 text-xs text-gray-400 truncate">{email}</p>
+                <button
+                  onClick={onSignOut}
+                  className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                >
+                  Sign out
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {categories.length > 0 && (

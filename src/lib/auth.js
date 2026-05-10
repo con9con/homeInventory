@@ -1,13 +1,15 @@
-import { verifyToken } from '@clerk/backend'
+import { jwtVerify } from 'jose'
+
+function secret() {
+  return new TextEncoder().encode(process.env.JWT_SECRET)
+}
 
 export async function getUserId(req) {
   const auth = req.headers['authorization'] ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : null
   if (!token) return null
   try {
-    const payload = await verifyToken(token, {
-      secretKey: process.env.CLERK_SECRET_KEY,
-    })
+    const { payload } = await jwtVerify(token, secret())
     return payload.sub ?? null
   } catch {
     return null

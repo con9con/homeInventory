@@ -1,62 +1,20 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useAuth, useUser, UserButton, SignIn } from '@clerk/clerk-react';
+import { useState, useMemo } from 'react';
+import { useAppAuth } from './context/AuthContext';
 import { useInventory } from './hooks/useInventory';
+import AuthForm from './components/AuthForm';
 import ItemList from './components/ItemList';
 import ItemFormModal from './components/ItemFormModal';
 import ItemDetailModal from './components/ItemDetailModal';
 
 export default function App() {
-  const { isLoaded, isSignedIn, getToken } = useAuth();
-  const [timedOut, setTimedOut] = useState(false);
+  const { isSignedIn, user, signOut, getToken } = useAppAuth();
 
-  useEffect(() => {
-    if (isLoaded) return;
-    const t = setTimeout(() => setTimedOut(true), 10000);
-    return () => clearTimeout(t);
-  }, [isLoaded]);
+  if (!isSignedIn) return <AuthForm />;
 
-  if (!isLoaded) {
-    if (timedOut) {
-      return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-          <div className="text-center max-w-sm">
-            <p className="text-gray-700 font-medium mb-2">Taking too long to load</p>
-            <p className="text-gray-500 text-sm mb-4">Authentication failed to initialize. Try a hard refresh (⌘⇧R / Ctrl+Shift+R), or check your network connection.</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-            >
-              Reload
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isSignedIn) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-sm">
-          <div className="text-center mb-6">
-            <span className="text-5xl">🏠</span>
-            <h1 className="text-2xl font-bold text-gray-800 mt-4">Home Inventory</h1>
-          </div>
-          <SignIn routing="hash" />
-        </div>
-      </div>
-    );
-  }
-
-  return <Inventory getToken={getToken} />;
+  return <Inventory getToken={getToken} email={user?.email} onSignOut={signOut} />;
 }
 
-function Inventory({ getToken }) {
+function Inventory({ getToken, email, onSignOut }) {
   const { items, loading, error, addItem, updateItem, deleteItem } = useInventory(getToken);
 
   const [modalItem, setModalItem] = useState(null);
@@ -118,7 +76,20 @@ function Inventory({ getToken }) {
               >
                 + Add Item
               </button>
-              <UserButton />
+              <div className="relative group">
+                <button className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 text-sm font-medium flex items-center justify-center hover:bg-gray-200 transition-colors">
+                  {email?.[0]?.toUpperCase() ?? '?'}
+                </button>
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg py-1 w-48 hidden group-focus-within:block">
+                  <p className="px-3 py-2 text-xs text-gray-400 truncate">{email}</p>
+                  <button
+                    onClick={onSignOut}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <input

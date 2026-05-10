@@ -3,6 +3,15 @@ import { neon } from '@neondatabase/serverless'
 const sql = neon(process.env.DATABASE_URL)
 
 await sql`
+  CREATE TABLE IF NOT EXISTS users (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email         TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )
+`
+
+await sql`
   CREATE TABLE IF NOT EXISTS items (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id     TEXT NOT NULL DEFAULT 'legacy',

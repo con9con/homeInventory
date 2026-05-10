@@ -102,6 +102,7 @@ function Inventory({ getToken, email, onSignOut }) {
 
   function toggleCategory(cat) {
     setActiveCategory(prev => (prev === cat ? '' : cat));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   const isFiltered = !!query.trim() || !!activeCategory;

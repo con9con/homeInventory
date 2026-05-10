@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import CropModal from './CropModal';
-import { normalizePhoto } from './CroppedPhoto';
+import CroppedPhoto, { normalizePhoto } from './CroppedPhoto';
 
 async function readAsDataURL(file) {
   return new Promise((resolve, reject) => {
@@ -111,10 +111,9 @@ export default function PhotoUpload({ photos, onChange, getToken }) {
             const { url } = normalizePhoto(p);
             return (
               <div key={url + i} className="relative w-20 h-20 group">
-                <img
-                  src={url}
-                  alt={`photo ${i + 1}`}
-                  className={`w-20 h-20 object-cover rounded border-2 ${
+                <CroppedPhoto
+                  photo={p}
+                  className={`w-20 h-20 rounded border-2 ${
                     i === 0 ? 'border-yellow-400' : 'border-gray-200'
                   }`}
                 />

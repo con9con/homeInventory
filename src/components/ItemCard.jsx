@@ -15,7 +15,7 @@ export default function ItemCard({ item, onEdit, onDelete, onView }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
       <div onClick={onView} className="cursor-pointer flex flex-col flex-1">
-        <div className="w-full aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
+        <div className="w-full aspect-square bg-white flex items-center justify-center overflow-hidden">
           {thumb ? (
             <CroppedPhoto
               photo={thumb}

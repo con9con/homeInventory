@@ -1,3 +1,5 @@
+import CroppedPhoto, { normalizePhoto } from './CroppedPhoto';
+
 const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
 const dateFmt = date =>
@@ -8,17 +10,16 @@ const dateFmt = date =>
   });
 
 export default function ItemCard({ item, onEdit, onDelete, onView }) {
-  const [thumb] = item.photos;
+  const thumb = item.photos?.[0] ?? null;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
       <div onClick={onView} className="cursor-pointer flex flex-col flex-1">
         <div className="w-full aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
           {thumb ? (
-            <img
-              src={thumb}
-              alt={`${item.brand} ${item.model}`}
-              className="w-full h-full object-cover"
+            <CroppedPhoto
+              photo={thumb}
+              className="w-full h-full"
             />
           ) : (
             <span className="text-gray-300 text-5xl select-none">📦</span>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { normalizePhoto } from './CroppedPhoto';
 
 const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 const dateFmt = date =>
@@ -10,15 +11,14 @@ const dateFmt = date =>
 
 export default function ItemDetailModal({ item, onEdit, onDelete, onClose }) {
   const [photoIndex, setPhotoIndex] = useState(0);
-  const photos = item.photos ?? [];
+  // Normalize to handle both legacy string URLs and new {url, crop} objects
+  const photos = (item.photos ?? []).map(normalizePhoto);
   const hasPhotos = photos.length > 0;
 
-  function prev() {
-    setPhotoIndex(i => (i - 1 + photos.length) % photos.length);
-  }
-  function next() {
-    setPhotoIndex(i => (i + 1) % photos.length);
-  }
+  function prev() { setPhotoIndex(i => (i - 1 + photos.length) % photos.length); }
+  function next() { setPhotoIndex(i => (i + 1) % photos.length); }
+
+  const current = photos[photoIndex];
 
   return (
     <div
@@ -31,7 +31,7 @@ export default function ItemDetailModal({ item, onEdit, onDelete, onClose }) {
           {hasPhotos ? (
             <>
               <img
-                src={photos[photoIndex]}
+                src={current.url}
                 alt={`${item.brand} ${item.model} photo ${photoIndex + 1}`}
                 className="w-full h-full object-contain"
               />
@@ -79,7 +79,7 @@ export default function ItemDetailModal({ item, onEdit, onDelete, onClose }) {
         {/* Thumbnail strip */}
         {photos.length > 1 && (
           <div className="flex gap-2 px-5 pt-3 overflow-x-auto">
-            {photos.map((src, i) => (
+            {photos.map((photo, i) => (
               <div key={i} className="relative shrink-0">
                 <button
                   onClick={() => setPhotoIndex(i)}
@@ -87,7 +87,7 @@ export default function ItemDetailModal({ item, onEdit, onDelete, onClose }) {
                     i === photoIndex ? 'border-blue-500' : 'border-transparent'
                   }`}
                 >
-                  <img src={src} alt="" className="w-full h-full object-cover" />
+                  <img src={photo.url} alt="" className="w-full h-full object-cover" />
                 </button>
                 {i === 0 && (
                   <span

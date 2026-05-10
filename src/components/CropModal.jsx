@@ -2,41 +2,17 @@ import { useState, useRef, useCallback } from 'react';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
-async function getCroppedBlob(imgEl, crop) {
-  const scaleX = imgEl.naturalWidth / imgEl.width;
-  const scaleY = imgEl.naturalHeight / imgEl.height;
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.round(crop.width * scaleX);
-  canvas.height = Math.round(crop.height * scaleY);
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(
-    imgEl,
-    crop.x * scaleX,
-    crop.y * scaleY,
-    crop.width * scaleX,
-    crop.height * scaleY,
-    0,
-    0,
-    canvas.width,
-    canvas.height,
-  );
-  return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
-}
-
-export default function CropModal({ src, filename, onConfirm, onCancel }) {
+export default function CropModal({ src, initialCrop, onConfirm, onCancel }) {
   const imgRef = useRef(null);
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState();
 
   const onImageLoad = useCallback(e => {
     const { width, height } = e.currentTarget;
-    const pct = centerCrop(
-      makeAspectCrop({ unit: '%', width: 90 }, 1, width, height),
-      width,
-      height,
-    );
+    const pct = initialCrop
+      ? { unit: '%', ...initialCrop }
+      : centerCrop(makeAspectCrop({ unit: '%', width: 90 }, 1, width, height), width, height);
     setCrop(pct);
-    // Store initial crop as pixels so handleConfirm can use it without conversion
     setCompletedCrop({
       unit: 'px',
       x: Math.round((pct.x / 100) * width),
@@ -44,13 +20,17 @@ export default function CropModal({ src, filename, onConfirm, onCancel }) {
       width: Math.round((pct.width / 100) * width),
       height: Math.round((pct.height / 100) * height),
     });
-  }, []);
+  }, [initialCrop]);
 
-  async function handleConfirm() {
+  function handleConfirm() {
     if (!completedCrop?.width || !imgRef.current) return;
-    // completedCrop is in display pixels — pass directly, no conversion needed
-    const blob = await getCroppedBlob(imgRef.current, completedCrop);
-    onConfirm(blob, filename);
+    const { width, height } = imgRef.current;
+    onConfirm({
+      x: completedCrop.x / width * 100,
+      y: completedCrop.y / height * 100,
+      width: completedCrop.width / width * 100,
+      height: completedCrop.height / height * 100,
+    });
   }
 
   return (
@@ -72,7 +52,6 @@ export default function CropModal({ src, filename, onConfirm, onCancel }) {
           />
         </ReactCrop>
       </div>
-
       <div className="bg-gray-900 px-6 py-4 flex gap-3">
         <button
           type="button"

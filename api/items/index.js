@@ -11,7 +11,7 @@ export default requireAuth(async (req, res, userId) => {
   if (req.method === 'GET') {
     const rows = await sql`
       SELECT id, brand, model, category,
-             price::float, date_added AS "dateAdded", photos
+             price::float, date_added::text AS "dateAdded", photos
       FROM items
       WHERE user_id = ${userId}
       ORDER BY created_at DESC
@@ -24,7 +24,7 @@ export default requireAuth(async (req, res, userId) => {
     const [item] = await sql`
       INSERT INTO items (user_id, brand, model, category, price, date_added, photos)
       VALUES (${userId}, ${brand}, ${model}, ${category || null}, ${price}, ${dateAdded}, ${JSON.stringify(photos)})
-      RETURNING id, brand, model, category, price::float, date_added AS "dateAdded", photos
+      RETURNING id, brand, model, category, price::float, date_added::text AS "dateAdded", photos
     `
     return res.status(201).json(item)
   }

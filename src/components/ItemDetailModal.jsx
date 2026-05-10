@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 const dateFmt = date =>
-  new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
+  new Date(date.slice(0, 10) + 'T00:00:00').toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

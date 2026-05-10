@@ -20,7 +20,7 @@ export default requireAuth(async (req, res, userId) => {
           date_added = ${dateAdded},
           photos     = ${JSON.stringify(photos)}
       WHERE id = ${id} AND user_id = ${userId}
-      RETURNING id, brand, model, category, price::float, date_added AS "dateAdded", photos
+      RETURNING id, brand, model, category, price::float, date_added::text AS "dateAdded", photos
     `
     if (!item) return res.status(404).json({ error: 'Not found' })
     return res.json(item)

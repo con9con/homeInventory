@@ -153,7 +153,7 @@ function Inventory({ getToken, email, onSignOut }) {
 
       </header>
 
-      <div className="bg-white border-b border-gray-100">
+      <div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2 flex-wrap">
           {activeCategory && (
             <button

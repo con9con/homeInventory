@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppAuth } from './context/AuthContext';
 import { useInventory } from './hooks/useInventory';
 import AuthForm from './components/AuthForm';
 import ItemList from './components/ItemList';
 import ItemFormModal from './components/ItemFormModal';
 import ItemDetailModal from './components/ItemDetailModal';
+import ManageCategoriesModal from './components/ManageCategoriesModal';
 
 export default function App() {
   const { isSignedIn, user, signOut, getToken } = useAppAuth();
@@ -22,11 +23,51 @@ function Inventory({ getToken, email, onSignOut }) {
   const [detailItem, setDetailItem] = useState(null);
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('');
+  const [managingCategories, setManagingCategories] = useState(false);
 
-  const categories = useMemo(() => {
-    const set = new Set(items.map(i => i.category).filter(Boolean));
-    return [...set].sort();
-  }, [items]);
+  // Categories loaded from the API
+  const [categories, setCategories] = useState([]);
+
+  const fetchCategories = useCallback(async () => {
+    const token = await getToken();
+    const res = await fetch('/api/categories', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (res.ok) setCategories(await res.json());
+  }, [getToken]);
+
+  useEffect(() => { fetchCategories(); }, [fetchCategories]);
+
+  async function addCategory(name) {
+    const token = await getToken();
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ name }),
+    });
+    const data = await res.json();
+    if (!res.ok) return data.error;
+    setCategories(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+    return null;
+  }
+
+  async function deleteCategory(id) {
+    const token = await getToken();
+    const res = await fetch(`/api/categories/${id}`, {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    const data = await res.json();
+    if (!res.ok) return data.error;
+    setCategories(prev => prev.filter(c => c.id !== id));
+    if (activeCategory === categories.find(c => c.id === id)?.name) setActiveCategory('');
+    return null;
+  }
+
+  const categoryNames = useMemo(() => categories.map(c => c.name), [categories]);
 
   const filtered = useMemo(() => {
     return items.filter(i => {
@@ -104,31 +145,35 @@ function Inventory({ getToken, email, onSignOut }) {
           </div>
         </div>
 
-        {categories.length > 0 && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-3 flex gap-2 flex-wrap">
-            {activeCategory && (
-              <button
-                onClick={() => setActiveCategory('')}
-                className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-medium"
-              >
-                All
-              </button>
-            )}
-            {categories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => toggleCategory(cat)}
-                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-                  activeCategory === cat
-                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
-                    : 'border-gray-200 text-gray-500 hover:border-blue-400 hover:text-blue-600 bg-white'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-3 flex items-center gap-2 flex-wrap">
+          {activeCategory && (
+            <button
+              onClick={() => setActiveCategory('')}
+              className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-medium"
+            >
+              All
+            </button>
+          )}
+          {categories.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => toggleCategory(cat.name)}
+              className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                activeCategory === cat.name
+                  ? 'bg-blue-600 border-blue-600 text-white font-medium'
+                  : 'border-gray-200 text-gray-500 hover:border-blue-400 hover:text-blue-600 bg-white'
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+          <button
+            onClick={() => setManagingCategories(true)}
+            className="text-xs px-3 py-1 rounded-full border border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
+          >
+            Manage
+          </button>
+        </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -165,9 +210,19 @@ function Inventory({ getToken, email, onSignOut }) {
       {modalOpen && (
         <ItemFormModal
           item={modalItem}
+          categories={categoryNames}
           onSave={handleSave}
           onClose={() => setModalOpen(false)}
           getToken={getToken}
+        />
+      )}
+
+      {managingCategories && (
+        <ManageCategoriesModal
+          categories={categories}
+          onAdd={addCategory}
+          onDelete={deleteCategory}
+          onClose={() => setManagingCategories(false)}
         />
       )}
     </div>

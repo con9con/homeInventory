@@ -3,19 +3,6 @@ import PhotoUpload from './PhotoUpload';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export const CATEGORIES = [
-  'Electronics',
-  'Furniture',
-  'Appliances',
-  'Kitchen',
-  'Clothing',
-  'Tools',
-  'Sports & Outdoors',
-  'Office',
-  'Garage',
-  'Other',
-];
-
 const empty = () => ({
   brand: '',
   model: '',
@@ -25,7 +12,7 @@ const empty = () => ({
   photos: [],
 });
 
-export default function ItemFormModal({ item, onSave, onClose, getToken }) {
+export default function ItemFormModal({ item, categories = [], onSave, onClose, getToken }) {
   const [form, setForm] = useState(empty);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -104,7 +91,8 @@ export default function ItemFormModal({ item, onSave, onClose, getToken }) {
               className={input()}
             >
               <option value="">— Select a category —</option>
-              {CATEGORIES.map(c => (
+              {/* Include item's existing category even if it was deleted from the managed list */}
+              {[...new Set([...(item?.category ? [item.category] : []), ...categories])].map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>

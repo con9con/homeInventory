@@ -30,4 +30,14 @@ await sql`UPDATE items SET user_id = 'legacy' WHERE user_id IS NULL`
 await sql`ALTER TABLE items ALTER COLUMN user_id SET NOT NULL`
 await sql`CREATE INDEX IF NOT EXISTS items_user_id_idx ON items (user_id)`
 
+await sql`
+  CREATE TABLE IF NOT EXISTS categories (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id    TEXT NOT NULL,
+    name       TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(user_id, name)
+  )
+`
+
 console.log('Migration complete ✓')

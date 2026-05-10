@@ -27,7 +27,7 @@ export default function ItemDetailModal({ item, onEdit, onDelete, onClose }) {
     >
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Photo gallery */}
-        <div className="relative w-full aspect-video bg-gray-100 rounded-t-2xl overflow-hidden">
+        <div className="relative w-full aspect-video bg-white rounded-t-2xl overflow-hidden">
           {hasPhotos ? (
             <>
               <img

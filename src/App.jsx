@@ -62,24 +62,28 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-2xl">🏠</span>
-            <span className="text-xl font-bold text-gray-800">Home Inventory</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-3 flex flex-col gap-3">
+          {/* Row 1: title + button — always visible */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-2xl shrink-0">🏠</span>
+              <span className="text-lg font-bold text-gray-800 truncate">Home Inventory</span>
+            </div>
+            <button
+              onClick={openAdd}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shrink-0"
+            >
+              + Add Item
+            </button>
           </div>
+          {/* Row 2: search — full width on all screen sizes */}
           <input
             type="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search by brand or model…"
-            className="flex-1 max-w-sm border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+            className="w-full sm:max-w-sm border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
           />
-          <button
-            onClick={openAdd}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shrink-0 ml-auto"
-          >
-            + Add Item
-          </button>
         </div>
 
         {categories.length > 0 && (

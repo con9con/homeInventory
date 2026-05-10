@@ -69,6 +69,11 @@ function Inventory({ getToken, email, onSignOut }) {
 
   const categoryNames = useMemo(() => categories.map(c => c.name), [categories]);
 
+  const usedCategories = useMemo(() => {
+    const inUse = new Set(items.map(i => i.category).filter(Boolean));
+    return categories.filter(c => inUse.has(c.name));
+  }, [categories, items]);
+
   const filtered = useMemo(() => {
     return items.filter(i => {
       const matchesSearch = query.trim()
@@ -154,7 +159,7 @@ function Inventory({ getToken, email, onSignOut }) {
               All
             </button>
           )}
-          {categories.map(cat => (
+          {usedCategories.map(cat => (
             <button
               key={cat.id}
               onClick={() => toggleCategory(cat.name)}

@@ -25,6 +25,8 @@ function Inventory({ getToken, email, onSignOut }) {
   const [activeCategory, setActiveCategory] = useState('');
   const [managingCategories, setManagingCategories] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Categories loaded from the API
   const [categories, setCategories] = useState([]);
@@ -75,15 +77,30 @@ function Inventory({ getToken, email, onSignOut }) {
     return categories.filter(c => inUse.has(c.name));
   }, [categories, items]);
 
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    items.forEach(i => { if (i.category) counts[i.category] = (counts[i.category] || 0) + 1; });
+    return counts;
+  }, [items]);
+
   const filtered = useMemo(() => {
-    return items.filter(i => {
+    const list = items.filter(i => {
       const matchesSearch = query.trim()
         ? `${i.brand} ${i.model} ${i.category ?? ''}`.toLowerCase().includes(query.toLowerCase())
         : true;
       const matchesCategory = activeCategory ? i.category === activeCategory : true;
       return matchesSearch && matchesCategory;
     });
-  }, [items, query, activeCategory]);
+    return [...list].sort((a, b) => {
+      switch (sortBy) {
+        case 'oldest': return new Date(a.dateAdded) - new Date(b.dateAdded);
+        case 'price-desc': return b.price - a.price;
+        case 'price-asc': return a.price - b.price;
+        case 'az': return `${a.brand} ${a.model}`.localeCompare(`${b.brand} ${b.model}`);
+        default: return new Date(b.dateAdded) - new Date(a.dateAdded);
+      }
+    });
+  }, [items, query, activeCategory, sortBy]);
 
   function openAdd() { setModalItem(null); setModalOpen(true); }
   function openEdit(item) { setModalItem(item); setModalOpen(true); }
@@ -94,11 +111,14 @@ function Inventory({ getToken, email, onSignOut }) {
     setModalOpen(false);
   }
 
-  async function handleDelete(id) {
-    if (confirm('Delete this item?')) {
-      await deleteItem(id);
-      setDetailItem(null);
-    }
+  function handleDelete(id) {
+    setDeleteTarget(id);
+  }
+
+  async function confirmDelete() {
+    await deleteItem(deleteTarget);
+    if (detailItem?.id === deleteTarget) setDetailItem(null);
+    setDeleteTarget(null);
   }
 
   function toggleCategory(cat) {
@@ -192,7 +212,7 @@ function Inventory({ getToken, email, onSignOut }) {
                   : 'border-gray-200 text-gray-500 hover:border-blue-400 hover:text-blue-600 bg-white'
               }`}
             >
-              {cat.name}
+              {cat.name} <span className="opacity-60">({categoryCounts[cat.name] ?? 0})</span>
             </button>
           ))}
           <button
@@ -216,11 +236,24 @@ function Inventory({ getToken, email, onSignOut }) {
           </div>
         ) : (
           <>
-            <p className="text-sm text-gray-400 mb-6">
-              {filtered.length} {filtered.length === 1 ? 'item' : 'items'}
-              {activeCategory && ` in ${activeCategory}`}
-              {query.trim() && ` matching "${query}"`}
-            </p>
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm text-gray-400">
+                {filtered.length} {filtered.length === 1 ? 'item' : 'items'}
+                {activeCategory && ` in ${activeCategory}`}
+                {query.trim() && ` matching "${query}"`}
+              </p>
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600 outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="price-desc">Price: High → Low</option>
+                <option value="price-asc">Price: Low → High</option>
+                <option value="az">A → Z</option>
+              </select>
+            </div>
             <ItemList items={filtered} onEdit={openEdit} onDelete={handleDelete} onView={setDetailItem} isFiltered={isFiltered} />
           </>
         )}
@@ -252,6 +285,29 @@ function Inventory({ getToken, email, onSignOut }) {
           onDelete={deleteCategory}
           onClose={() => setManagingCategories(false)}
         />
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-1">Delete item?</h3>
+            <p className="text-sm text-gray-500 mb-6">This cannot be undone.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

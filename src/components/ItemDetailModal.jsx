@@ -95,7 +95,7 @@ export default function ItemDetailModal({ item, onEdit, onDelete, onClose }) {
               </div>
             )}
             <div>
-              <span className="text-xs uppercase tracking-wide text-gray-400 block mb-0.5">Date Added</span>
+              <span className="text-xs uppercase tracking-wide text-gray-400 block mb-0.5">Date Purchased</span>
               <span>{dateFmt(item.dateAdded)}</span>
             </div>
           </div>

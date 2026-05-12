@@ -24,6 +24,7 @@ function Inventory({ getToken, email, onSignOut }) {
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('');
   const [managingCategories, setManagingCategories] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Categories loaded from the API
   const [categories, setCategories] = useState([]);
@@ -111,22 +112,33 @@ function Inventory({ getToken, email, onSignOut }) {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-3 flex flex-wrap sm:flex-nowrap items-center gap-3">
-          {/* Title — always first */}
+          {/* Title */}
           <div className="flex items-center gap-2 min-w-0 shrink-0 order-1">
             <span className="text-2xl shrink-0">🏠</span>
-            <span className="text-lg font-bold text-gray-800 truncate">Home Inventory</span>
+            <span className="text-lg font-bold text-gray-800 truncate">Inventory+</span>
           </div>
 
-          {/* Search — below title on mobile (order-3 + w-full forces new row), between title and actions on sm+ */}
-          <input
-            type="search"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search by brand or model…"
-            className="order-3 sm:order-2 w-full sm:flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
-          />
+          {/* Search */}
+          <div className="order-3 sm:order-2 w-full sm:flex-1 relative">
+            <input
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search by brand or model…"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+            />
+            {query && (
+              <button
+                onClick={() => setQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </div>
 
-          {/* Actions — right of title on mobile (ml-auto), end of row on sm+ */}
+          {/* Actions */}
           <div className="order-2 sm:order-3 flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
             <button
               onClick={openAdd}
@@ -134,23 +146,30 @@ function Inventory({ getToken, email, onSignOut }) {
             >
               + Add Item
             </button>
-            <div className="relative group">
-              <button className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 text-sm font-medium flex items-center justify-center hover:bg-gray-200 transition-colors">
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen(o => !o)}
+                className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 text-sm font-medium flex items-center justify-center hover:bg-gray-200 transition-colors"
+              >
                 {email?.[0]?.toUpperCase() ?? '?'}
               </button>
-              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg py-1 w-48 hidden group-focus-within:block">
-                <p className="px-3 py-2 text-xs text-gray-400 truncate">{email}</p>
-                <button
-                  onClick={onSignOut}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
-                >
-                  Sign out
-                </button>
-              </div>
+              {menuOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg py-1 w-48 z-20">
+                    <p className="px-3 py-2 text-xs text-gray-400 truncate">{email}</p>
+                    <button
+                      onClick={() => { setMenuOpen(false); onSignOut(); }}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
-
       </header>
 
       <div>

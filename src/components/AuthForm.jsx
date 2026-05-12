@@ -39,7 +39,7 @@ export default function AuthForm() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <span className="text-5xl">🏠</span>
-          <h1 className="text-2xl font-bold text-gray-800 mt-4">Home Inventory</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mt-4">Inventory+</h1>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">

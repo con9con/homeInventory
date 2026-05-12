@@ -91,7 +91,6 @@ export default function ItemFormModal({ item, categories = [], onSave, onClose, 
               className={input()}
             >
               <option value="">— Select a category —</option>
-              {/* Include item's existing category even if it was deleted from the managed list */}
               {[...new Set([...(item?.category ? [item.category] : []), ...categories])].map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}

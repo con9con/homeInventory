@@ -18,9 +18,16 @@ export default function CroppedPhoto({ photo, className, style }) {
     );
   }
 
-  // Use an <img> (better rendering quality than background-image) with CSS transform.
-  // transform: translate(X%, Y%) is relative to the element's own size, so the
-  // offset correctly accounts for the image's natural aspect ratio at any zoom level.
+  // CSS `top: X%` uses the containing block's HEIGHT, which can be 0 when `h-full`
+  // sits inside an aspect-ratio parent. CSS `margin-top: X%` ALWAYS uses the
+  // containing block's WIDTH (per spec), which is always definite. For the square
+  // containers CroppedPhoto is used in, width === height so the math is identical.
+  //
+  // left  = -(crop.x / crop.width)  * 100% of container width  ✓
+  // shift up = -(crop.y / crop.height) * container_height
+  //          = -(crop.y / crop.height) * container_width  [square container]
+  //          → marginTop = -(crop.y / crop.height) * 100% of container width  ✓
+  const cropH = crop.height || crop.width; // guard against missing height in old records
   return (
     <div
       className={className}
@@ -31,10 +38,11 @@ export default function CroppedPhoto({ photo, className, style }) {
         style={{
           position: 'absolute',
           top: 0,
-          left: 0,
+          marginTop: `${-(crop.y / cropH) * 100}%`,
+          left: `${-(crop.x / crop.width) * 100}%`,
           width: `${(100 / crop.width) * 100}%`,
+          maxWidth: 'none',
           height: 'auto',
-          transform: `translate(-${crop.x}%, -${crop.y}%)`,
         }}
       />
     </div>

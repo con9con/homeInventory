@@ -11,7 +11,6 @@ const dateFmt = date =>
 
 export default function ItemDetailModal({ item, onEdit, onDelete, onClose }) {
   const [photoIndex, setPhotoIndex] = useState(0);
-  // Normalize to handle both legacy string URLs and new {url, crop} objects
   const photos = (item.photos ?? []).map(normalizePhoto);
   const hasPhotos = photos.length > 0;
 
@@ -75,32 +74,6 @@ export default function ItemDetailModal({ item, onEdit, onDelete, onClose }) {
             ×
           </button>
         </div>
-
-        {/* Thumbnail strip */}
-        {photos.length > 1 && (
-          <div className="flex gap-2 px-5 pt-3 overflow-x-auto">
-            {photos.map((photo, i) => (
-              <div key={i} className="relative shrink-0">
-                <button
-                  onClick={() => setPhotoIndex(i)}
-                  className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-colors block ${
-                    i === photoIndex ? 'border-blue-500' : 'border-transparent'
-                  }`}
-                >
-                  <img src={photo.url} alt="" className="w-full h-full object-cover" />
-                </button>
-                {i === 0 && (
-                  <span
-                    title="Featured photo"
-                    className="absolute -top-1 -right-1 text-yellow-400 text-xs leading-none"
-                  >
-                    ★
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Details */}
         <div className="px-6 py-5">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { normalizePhoto } from './CroppedPhoto';
 
 const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -11,11 +11,20 @@ const dateFmt = date =>
 
 export default function ItemDetailModal({ item, onEdit, onDelete, onClose }) {
   const [photoIndex, setPhotoIndex] = useState(0);
+  const touchStartX = useRef(null);
   const photos = (item.photos ?? []).map(normalizePhoto);
   const hasPhotos = photos.length > 0;
 
   function prev() { setPhotoIndex(i => (i - 1 + photos.length) % photos.length); }
   function next() { setPhotoIndex(i => (i + 1) % photos.length); }
+
+  function handleTouchStart(e) { touchStartX.current = e.touches[0].clientX; }
+  function handleTouchEnd(e) {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 50) dx < 0 ? next() : prev();
+    touchStartX.current = null;
+  }
 
   const current = photos[photoIndex];
 
@@ -26,7 +35,11 @@ export default function ItemDetailModal({ item, onEdit, onDelete, onClose }) {
     >
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Photo gallery */}
-        <div className="relative w-full aspect-video bg-white rounded-t-2xl overflow-hidden">
+        <div
+          className="relative w-full aspect-video bg-white rounded-t-2xl overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {hasPhotos ? (
             <>
               <img
